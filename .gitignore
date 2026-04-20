@@ -1,0 +1,6 @@
+node_modules/
+stockfish/
+.netlify/
+.DS_Store
+package-lock.json
+*.log
