@@ -937,19 +937,6 @@
           <span class="piece-icon">♚</span> Black
         </button>
       </div>
-    <!-- Editor Toggle -->
-    <div class="card">
-      <div class="card-header">Editor Mode</div>
-      <div style="display:flex; align-items:center; justify-content:space-between;">
-        <span style="font-size:13px; color:var(--text-dim);">Free Placement</span>
-        <label class="switch">
-          <input type="checkbox" id="freestyleToggle" onchange="toggleFreestyle()">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div style="font-size:11px; color:var(--text-dim); margin-top:10px; opacity:0.8; line-height:1.4;">
-        Drag pieces anywhere or off-board to remove them. Moves in this mode don't switch turns.
-      </div>
     </div>
 
     <!-- Depth -->
@@ -1082,8 +1069,6 @@ let halfMove = 0;
 let fullMove = 1;
 let lastFrom = null, lastTo = null;
 let promoCallback = null;
-let freestyleMode = false;
-
 // Stockfish
 let sf = null;
 let sfReady = false;
@@ -1115,16 +1100,6 @@ function initStockfish() {
 function sfSend(msg) {
   if (!sf) return;
   sf.postMessage(msg);
-}
-
-function toggleFreestyle() {
-  freestyleMode = document.getElementById('freestyleToggle').checked;
-  clearHighlights();
-  if (freestyleMode) {
-    document.getElementById('calcBtn').style.boxShadow = '0 0 20px rgba(232,201,122,0.4)';
-  } else {
-    document.getElementById('calcBtn').style.boxShadow = '';
-  }
 }
 
 let pendingDepth = 15;
@@ -1431,40 +1406,21 @@ function onSquareMouseDown(e) {
   const idx = parseInt(sq.dataset.idx);
   const piece = board[idx];
 
-  // If we have a selected square, try to move
+  // If we have a selected square, try to move there
   if (selectedSq !== null && selectedSq !== idx) {
-    const legalMoves = getLegalMoves(selectedSq);
-    if (freestyleMode || legalMoves.includes(idx)) {
-      if (freestyleMode) executePlacement(selectedSq, idx);
-      else attemptMove(selectedSq, idx);
-      selectedSq = null;
-      clearHighlights();
-      return;
-    }
+    executePlacement(selectedSq, idx);
+    selectedSq = null;
+    clearHighlights();
+    return;
   }
 
-  // Select piece
+  // Select any piece (no color restriction)
   if (piece) {
-    const isPlayerPiece = (turn === 'w' && isWhite(piece)) || (turn === 'b' && isBlack(piece));
-    if (!isPlayerPiece && !freestyleMode) { selectedSq = null; clearHighlights(); return; }
-
     selectedSq = idx;
     dragSrc = idx;
 
     clearHighlights();
     sq.classList.add('selected');
-
-    if (!freestyleMode) {
-      // Show possible moves
-      const moves = getLegalMoves(idx);
-      moves.forEach(mi => {
-        const el = getBoardSquareEl(mi);
-        if (el) {
-          if (board[mi]) el.classList.add('possible-capture');
-          else el.classList.add('possible-move');
-        }
-      });
-    }
 
     // Start drag
     isDragging = true;
@@ -1496,23 +1452,21 @@ document.addEventListener('mouseup', e => {
 
   const el = document.elementFromPoint(e.clientX, e.clientY);
   const sq = el?.closest('.square');
-  
+
   if (dragSrc !== null) {
     if (sq) {
       const toIdx = parseInt(sq.dataset.idx);
       if (dragSrc !== toIdx) {
-        const legalMoves = getLegalMoves(dragSrc);
-        if (freestyleMode || legalMoves.includes(toIdx)) {
-          clearHighlights();
-          if (freestyleMode) executePlacement(dragSrc, toIdx);
-          else attemptMove(dragSrc, toIdx);
-          dragSrc = null;
-          selectedSq = null;
-          return;
-        }
+        clearHighlights();
+        executePlacement(dragSrc, toIdx);
+        dragSrc = null;
+        selectedSq = null;
+        return;
       }
-    } else if (freestyleMode) {
+    } else {
       // Dragged off board -> Remove piece
+      boardHistory.push([...board]);
+      fenHistory.push(boardToFEN());
       board[dragSrc] = null;
       dragSrc = null;
       selectedSq = null;
