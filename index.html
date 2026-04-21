@@ -127,7 +127,7 @@
     grid-template-columns: 1fr auto 380px;
     gap: 32px;
     padding: 32px 40px;
-    max-width: 1400px;
+    max-width: 1500px;
     margin: 0 auto;
     align-items: start;
   }
@@ -801,6 +801,99 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
+  /* ── Piece Trays ── */
+  .piece-tray {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    min-width: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .piece-tray::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
+  }
+
+  .piece-tray-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+  }
+
+  .tray-piece {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    cursor: grab;
+    user-select: none;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+    filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.3));
+    position: relative;
+  }
+
+  .tray-piece:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    transform: scale(1.12);
+    filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.5));
+  }
+
+  .tray-piece:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+  }
+
+  .tray-piece.tray-dragging {
+    opacity: 0.4;
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .board-with-trays {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* ── Promotion Modal Enhanced ── */
+  .promo-piece-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .promo-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
   @media (max-width: 1200px) {
     main { grid-template-columns: 1fr; padding: 20px; }
     .eval-bar-wrap { display: none; }
@@ -808,6 +901,10 @@
     #board { width: 480px; height: 480px; }
     .square { width: 60px; height: 60px; }
     .piece { width: 54px; height: 54px; font-size: 44px; line-height: 54px; }
+    .piece-tray { flex-direction: row; min-width: auto; min-height: 56px; padding: 6px 10px; }
+    .piece-tray-label { writing-mode: horizontal-tb; transform: none; }
+    .board-with-trays { flex-direction: column; }
+    .tray-piece { width: 40px; height: 40px; font-size: 32px; }
   }
 
   /* ── Switch Toggle ── */
@@ -905,11 +1002,35 @@
         </div>
       </div>
 
-      <div class="board-outer">
-        <div class="board-coords">
-          <div class="coord-ranks" id="coordRanks"></div>
-          <div id="board"></div>
-          <div class="coord-files" id="coordFiles"></div>
+      <div class="board-with-trays">
+        <!-- White Piece Tray (left) -->
+        <div class="piece-tray" id="whiteTray">
+          <div class="piece-tray-label">White</div>
+          <div class="tray-piece" data-piece="K" style="color:#fffdf5;text-shadow:0 1px 3px rgba(0,0,0,0.6), 0 0 1px #8b6914;">♔</div>
+          <div class="tray-piece" data-piece="Q" style="color:#fffdf5;text-shadow:0 1px 3px rgba(0,0,0,0.6), 0 0 1px #8b6914;">♕</div>
+          <div class="tray-piece" data-piece="R" style="color:#fffdf5;text-shadow:0 1px 3px rgba(0,0,0,0.6), 0 0 1px #8b6914;">♖</div>
+          <div class="tray-piece" data-piece="B" style="color:#fffdf5;text-shadow:0 1px 3px rgba(0,0,0,0.6), 0 0 1px #8b6914;">♗</div>
+          <div class="tray-piece" data-piece="N" style="color:#fffdf5;text-shadow:0 1px 3px rgba(0,0,0,0.6), 0 0 1px #8b6914;">♘</div>
+          <div class="tray-piece" data-piece="P" style="color:#fffdf5;text-shadow:0 1px 3px rgba(0,0,0,0.6), 0 0 1px #8b6914;">♙</div>
+        </div>
+
+        <div class="board-outer">
+          <div class="board-coords">
+            <div class="coord-ranks" id="coordRanks"></div>
+            <div id="board"></div>
+            <div class="coord-files" id="coordFiles"></div>
+          </div>
+        </div>
+
+        <!-- Black Piece Tray (right) -->
+        <div class="piece-tray" id="blackTray">
+          <div class="piece-tray-label">Black</div>
+          <div class="tray-piece" data-piece="k" style="color:#1a1a2e;text-shadow:0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(100,60,0,0.5);">♚</div>
+          <div class="tray-piece" data-piece="q" style="color:#1a1a2e;text-shadow:0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(100,60,0,0.5);">♛</div>
+          <div class="tray-piece" data-piece="r" style="color:#1a1a2e;text-shadow:0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(100,60,0,0.5);">♜</div>
+          <div class="tray-piece" data-piece="b" style="color:#1a1a2e;text-shadow:0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(100,60,0,0.5);">♝</div>
+          <div class="tray-piece" data-piece="n" style="color:#1a1a2e;text-shadow:0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(100,60,0,0.5);">♞</div>
+          <div class="tray-piece" data-piece="p" style="color:#1a1a2e;text-shadow:0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(100,60,0,0.5);">♟</div>
         </div>
       </div>
     </div>
@@ -1400,6 +1521,8 @@ function renderBoard() {
 // ─────────────────────────────────────────────
 let isDragging = false;
 let dragGhost = document.getElementById('dragGhost');
+let trayDragPiece = null; // piece key from tray being dragged
+let trayDragEl = null;    // the tray element being dragged
 
 function onSquareMouseDown(e) {
   const sq = e.currentTarget;
@@ -1408,7 +1531,7 @@ function onSquareMouseDown(e) {
 
   // If we have a selected square, try to move there
   if (selectedSq !== null && selectedSq !== idx) {
-    executePlacement(selectedSq, idx);
+    attemptMove(selectedSq, idx);
     selectedSq = null;
     clearHighlights();
     return;
@@ -1421,6 +1544,16 @@ function onSquareMouseDown(e) {
 
     clearHighlights();
     sq.classList.add('selected');
+
+    // Show legal move indicators
+    const legalMoves = getLegalMoves(idx);
+    legalMoves.forEach(moveIdx => {
+      const moveSq = getBoardSquareEl(moveIdx);
+      if (moveSq) {
+        if (board[moveIdx]) moveSq.classList.add('possible-capture');
+        else moveSq.classList.add('possible-move');
+      }
+    });
 
     // Start drag
     isDragging = true;
@@ -1453,12 +1586,31 @@ document.addEventListener('mouseup', e => {
   const el = document.elementFromPoint(e.clientX, e.clientY);
   const sq = el?.closest('.square');
 
+  // Handle tray piece drop
+  if (trayDragPiece !== null) {
+    if (trayDragEl) trayDragEl.classList.remove('tray-dragging');
+    if (sq) {
+      const toIdx = parseInt(sq.dataset.idx);
+      boardHistory.push([...board]);
+      fenHistory.push(boardToFEN());
+      board[toIdx] = trayDragPiece;
+      lastFrom = null;
+      lastTo = toIdx;
+      renderBoard();
+      updateFENDisplay();
+    }
+    trayDragPiece = null;
+    trayDragEl = null;
+    clearHighlights();
+    return;
+  }
+
   if (dragSrc !== null) {
     if (sq) {
       const toIdx = parseInt(sq.dataset.idx);
       if (dragSrc !== toIdx) {
         clearHighlights();
-        executePlacement(dragSrc, toIdx);
+        attemptMove(dragSrc, toIdx);
         dragSrc = null;
         selectedSq = null;
         return;
@@ -1495,6 +1647,33 @@ function clearHighlights() {
     sq.classList.remove('selected','possible-move','possible-capture','highlight-move');
   });
   document.querySelectorAll('.piece.dragging').forEach(p => p.classList.remove('dragging'));
+}
+
+// ─────────────────────────────────────────────
+//  TRAY DRAG & DROP (add pieces from tray)
+// ─────────────────────────────────────────────
+function initTrayDrag() {
+  document.querySelectorAll('.tray-piece').forEach(trayEl => {
+    trayEl.addEventListener('mousedown', e => {
+      e.preventDefault();
+      const pieceKey = trayEl.dataset.piece;
+      if (!pieceKey) return;
+
+      trayDragPiece = pieceKey;
+      trayDragEl = trayEl;
+      trayEl.classList.add('tray-dragging');
+      isDragging = true;
+      dragSrc = null;
+      selectedSq = null;
+
+      dragGhost.textContent = PIECES[pieceKey];
+      dragGhost.style.color = trayEl.style.color;
+      dragGhost.style.textShadow = trayEl.style.textShadow;
+      dragGhost.style.display = 'block';
+      dragGhost.style.left = e.clientX + 'px';
+      dragGhost.style.top = e.clientY + 'px';
+    });
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -1594,20 +1773,9 @@ function executeMove(fromIdx, toIdx, promoChoice) {
   updateEvalBar(0, true);
 }
 
+// executePlacement now just routes through attemptMove so castling + promotion always work
 function executePlacement(fromIdx, toIdx) {
-  boardHistory.push([...board]);
-  fenHistory.push(boardToFEN());
-
-  const piece = board[fromIdx];
-  board[toIdx] = piece;
-  board[fromIdx] = null;
-
-  lastFrom = fromIdx;
-  lastTo = toIdx;
-
-  renderBoard();
-  document.getElementById('bestMoveDisplay').classList.remove('active');
-  document.getElementById('emptyState').style.display = 'block';
+  attemptMove(fromIdx, toIdx);
 }
 
 // ─────────────────────────────────────────────
@@ -1615,16 +1783,25 @@ function executePlacement(fromIdx, toIdx) {
 // ─────────────────────────────────────────────
 function showPromoModal(isWhitePiece) {
   const pieces = isWhitePiece ? ['Q','R','B','N'] : ['q','r','b','n'];
+  const labels = ['Queen', 'Rook', 'Bishop', 'Knight'];
   const container = document.getElementById('promoPieces');
   container.innerHTML = '';
-  pieces.forEach(p => {
+  pieces.forEach((p, i) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'promo-option';
     const div = document.createElement('div');
     div.className = 'promo-piece';
     div.textContent = PIECES[p];
     if (isWhitePiece) { div.style.color = '#fffdf5'; div.style.textShadow = '0 1px 3px rgba(0,0,0,0.6)'; }
     else { div.style.color = '#1a1a2e'; }
     div.onclick = () => { if (promoCallback) promoCallback(p); };
-    container.appendChild(div);
+    const label = document.createElement('div');
+    label.className = 'promo-piece-label';
+    label.textContent = labels[i];
+    wrapper.appendChild(div);
+    wrapper.appendChild(label);
+    wrapper.onclick = div.onclick;
+    container.appendChild(wrapper);
   });
   document.getElementById('promoModal').classList.add('active');
 }
@@ -1879,6 +2056,7 @@ function updateFENDisplay() {
 // ─────────────────────────────────────────────
 parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 renderBoard();
+initTrayDrag();
 initStockfish();
 </script>
 </body>
